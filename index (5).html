@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SB Agentics — AI Receptionists That Never Miss a Lead</title>
+<meta name="description" content="SB Agentics builds AI receptionists and WhatsApp/Instagram agents for small and mid-sized businesses. Never miss a call, lead, or appointment again.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js" async></script>
+<style>
+  :root{
+    --bg: #000000;
+    --surface: #12203d;
+    --surface-2: #0e192f;
+    --border: rgba(255,255,255,0.09);
+    --border-strong: rgba(255,255,255,0.16);
+    --fg: #f4f6fb;
+    --muted: #93a0b8;
+    --muted-2: #6b7690;
+    --accent: #d9ac5c;
+    --accent-hover: #e6bc73;
+    --accent-fg: #14100a;
+    --navy: #192841;
+    --radius: 0.9rem;
+    --radius-sm: 0.55rem;
+    --shadow: 0 8px 30px -10px rgba(0,0,0,0.6);
+    --font-display: 'Sora', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(25,40,65,0.55), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(217,172,92,0.06), transparent 60%),
+      var(--bg);
+    color:var(--fg);
+    font-family:var(--font-body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  img,svg{ display:block; max-width:100%; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+
+  :focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--font-mono);
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color: var(--accent);
+    background: rgba(217,172,92,0.08);
+    border: 1px solid rgba(217,172,92,0.25);
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--accent);
+    flex-shrink:0;
+  }
+
+  /* ---------- Header (chrome, not a content section) ---------- */
+  header.site{
+    position: sticky;
+    top:0;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.65);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 16px 24px;
+  }
+  .logo{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:-0.01em;
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  .logo-dot{
+    width:9px; height:9px;
+    border-radius:50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(217,172,92,0.15);
+  }
+  .nav-cta{
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:0.86rem;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--accent-fg);
+    transition: background 0.15s ease, transform 0.15s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{ background:var(--accent-hover); transform: translateY(-1px); }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:0.95rem;
+    padding: 13px 24px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor:pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .btn-primary{
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .btn-primary:hover{ background: var(--accent-hover); transform: translateY(-1px); }
+  .btn-outline{
+    background: transparent;
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+  .btn-outline:hover{ background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+
+  /* ================= HERO ================= */
+  .hero{
+    padding: 44px 0 64px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-grid{
+    display:flex;
+    flex-direction:column;
+    gap: 40px;
+  }
+  .hero-copy{ max-width: 640px; }
+  .hero h1{
+    font-family: var(--font-display);
+    font-weight:700;
+    font-size: clamp(2.1rem, 4vw, 3.2rem);
+    line-height:1.1;
+    letter-spacing:-0.02em;
+    margin: 18px 0 20px;
+  }
+  .hero h1 .accent-text{ color: var(--accent); }
+  .hero p.sub{
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 500px;
+    margin-bottom: 32px;
+  }
+  .hero-actions{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  /* video placeholder */
+  .video-card{
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    box-shadow: var(--shadow);
+    max-width: 480px;
+    width: 100%;
+  }
+  .video-frame{
+    position:relative;
+    aspect-ratio: 16/9;
+    width:100%;
+    border-radius: calc(var(--radius) - 6px);
+    background:
+      radial-gradient(circle at 50% 45%, rgba(217,172,92,0.10), transparent 60%),
+      #0a1326;
+    border: 1px solid var(--border);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  /*
+    DEPLOY NOTE: replace this placeholder with your real embed, e.g.
+    <iframe src="https://www.youtube.com/embed/VIDEO_ID" title="SB Agentics demo"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
+  */
+  .play-btn{
+    width:64px; height:64px;
+    border-radius:50%;
+    background: rgba(217,172,92,0.95);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 0 0 10px rgba(217,172,92,0.12);
+    cursor:pointer;
+    transition: transform 0.15s ease;
+    z-index:2;
+  }
+  .play-btn:hover{ transform: scale(1.06); }
+  .play-btn svg{ margin-left:4px; }
+  .video-caption{
+    position:absolute;
+    left:16px; bottom:14px;
+    font-family:var(--font-mono);
+    font-size:0.72rem;
+    color: var(--muted);
+    background: rgba(0,0,0,0.5);
+    padding:5px 10px;
+    border-radius: 999px;
+    border:1px solid var(--border);
+    z-index:2;
+  }
+
+  /* ticker (signature element) */
+  .ticker{
+    margin-top:12px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #060a14;
+    overflow:hidden;
+    position:relative;
+  }
+  .ticker-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 12px;
+    border-bottom:1px solid var(--border);
+    font-family:var(--font-mono);
+    font-size:0.7rem;
+    color: var(--muted-2);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+  .live-dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:#5fd88f;
+    box-shadow:0 0 0 3px rgba(95,216,143,0.18);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.45; }
+  }
+  .ticker-track{
+    display:flex;
+    gap:36px;
+    padding: 10px 0;
+    white-space:nowrap;
+    width:max-content;
+    animation: scroll-left 22s linear infinite;
+  }
+  .ticker-track span{
+    font-family:var(--font-mono);
+    font-size:0.78rem;
+    color: var(--muted);
+    padding-left: 12px;
+  }
+  .ticker-track span b{ color:var(--fg); font-weight:500; }
+  @keyframes scroll-left{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-50%); }
+  }
+
+  /* ================= PROBLEM ================= */
+  .problem{
+    padding: 96px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-head{
+    max-width: 620px;
+    margin-bottom: 48px;
+  }
+  .section-head h2{
+    font-family: var(--font-display);
+    font-weight:700;
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    letter-spacing:-0.01em;
+    margin: 16px 0 12px;
+  }
+  .section-head p{ color: var(--muted); font-size:1.02rem; }
+
+  .problem-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .problem-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 26px;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .problem-card:hover{
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+  }
+  .problem-icon{
+    width:38px; height:38px;
+    border-radius: 10px;
+    background: rgba(217,172,92,0.1);
+    border: 1px solid rgba(217,172,92,0.25);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:18px;
+    color: var(--accent);
+  }
+  .problem-card h3{
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight:600;
+    margin-bottom:10px;
+    line-height:1.35;
+  }
+  .problem-card p{ color: var(--muted); font-size:0.94rem; }
+
+  /* ================= SOLUTION ================= */
+  .solution{ padding: 96px 0 108px; }
+  .solution-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    align-items:start;
+  }
+  .benefit-list{ display:flex; flex-direction:column; gap:20px; }
+  .benefit{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+  }
+  .benefit-check{
+    flex-shrink:0;
+    width:26px; height:26px;
+    border-radius:50%;
+    background: rgba(217,172,92,0.12);
+    border: 1px solid rgba(217,172,92,0.35);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:2px;
+  }
+  .benefit h3{
+    font-family: var(--font-display);
+    font-size:1rem;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .benefit p{ color: var(--muted); font-size:0.92rem; }
+
+  /* calendly placeholder */
+  .booking-card{
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .booking-card h4{
+    font-family: var(--font-display);
+    font-size:1.05rem;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .booking-card > p{ color:var(--muted); font-size:0.88rem; margin-bottom:16px; }
+  /*
+    DEPLOY NOTE: replace #calendly-embed contents with your real Calendly embed, e.g.
+    <div class="calendly-inline-widget" data-url="https://calendly.com/your-handle/intro-call"
+      style="min-width:280px;height:640px;"></div>
+    <script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+  */
+  #calendly-embed{
+    border-radius: var(--radius-sm);
+    background: #060a14;
+    overflow:hidden;
+  }
+  #calendly-embed .calendly-inline-widget{
+    border-radius: var(--radius-sm);
+  }
+
+  /* final CTA banner */
+  .cta-banner{
+    margin-top: 88px;
+    border: 1px solid rgba(217,172,92,0.3);
+    background:
+      radial-gradient(600px 260px at 20% 0%, rgba(217,172,92,0.12), transparent 60%),
+      var(--navy);
+    border-radius: var(--radius);
+    padding: 48px 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 32px;
+    flex-wrap:wrap;
+  }
+  .cta-banner h3{
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    font-weight:700;
+    letter-spacing:-0.01em;
+    max-width: 480px;
+  }
+  .cta-banner .btn{ flex-shrink:0; }
+
+  /* ---------- Footer (chrome) ---------- */
+  footer.site{
+    border-top: 1px solid var(--border);
+    padding: 28px 0;
+  }
+  .footer-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    color: var(--muted-2);
+    font-size:0.82rem;
+  }
+
+  /* ---------- reveal on scroll ---------- */
+  .reveal{
+    opacity:0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.is-visible{ opacity:1; transform:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .ticker-track{ animation:none; }
+    .live-dot{ animation:none; }
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px){
+    .problem-grid{ grid-template-columns:1fr; }
+    .solution-grid{ grid-template-columns:1fr; gap:36px; }
+  }
+  @media (max-width: 560px){
+    .hero{ padding:28px 0 44px; }
+    .problem, .solution{ padding:64px 0; }
+    .hero-actions{ flex-direction:column; align-items:stretch; }
+    .hero-actions .btn{ width:100%; }
+    .cta-banner{ padding:32px 24px; }
+    .cta-banner .btn{ width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <div class="logo"><span class="logo-dot"></span>SB Agentics</div>
+    <a href="#book" class="nav-cta">Book a Call</a>
+  </div>
+</header>
+
+<!-- ================= 1. HERO ================= -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">AI Receptionists · WhatsApp · Instagram</span>
+      <h1>Never miss another call, lead, or <span class="accent-text">appointment.</span></h1>
+      <p class="sub">SB Agentics builds AI receptionists and WhatsApp &amp; Instagram agents for small and mid‑sized businesses — answering every call and message instantly, 24/7, and booking appointments straight into your CRM.</p>
+      <div class="hero-actions">
+        <a href="#book" class="btn btn-primary">Book a Free Call</a>
+        <a href="#problem" class="btn btn-outline">See How It Works</a>
+      </div>
+    </div>
+
+    <div class="video-card">
+      <div class="video-frame">
+        <!-- YouTube placeholder: swap for a real iframe embed on deploy, see DEPLOY NOTE above -->
+        <div class="play-btn" role="button" aria-label="Play demo video" tabindex="0">
+          <svg width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M2 2L18 11L2 20V2Z" fill="#14100a"/></svg>
+        </div>
+        <span class="video-caption">▶ 90-second demo — how it works</span>
+      </div>
+
+      <div class="ticker">
+        <div class="ticker-head"><span class="live-dot"></span>Live agent activity</div>
+        <div class="ticker-track" id="tickerTrack"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2. PROBLEM ================= -->
+<section class="problem" id="problem">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The Problem</span>
+      <h2>Every missed call is a customer calling someone else.</h2>
+      <p>You're not losing business because your service is bad. You're losing it before the conversation even starts.</p>
+    </div>
+
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="problem-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
+        </div>
+        <h3>Your receptionist can't work 24/7.</h3>
+        <p>After hours, weekends, lunch breaks, sick days — every gap is a missed appointment for a competitor to pick up instead.</p>
+      </div>
+
+      <div class="problem-card reveal">
+        <div class="problem-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h4l2 5-2.5 1.5a11 11 0 0 0 5 5L13 14l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 7a2 2 0 0 1 2-2z" stroke-dasharray="2 3"/></svg>
+        </div>
+        <h3>Missed calls don't leave voicemails. They just hang up.</h3>
+        <p>Most callers won't wait on hold or leave a message — they simply call the next business on their list.</p>
+      </div>
+
+      <div class="problem-card reveal">
+        <div class="problem-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-4-1L3 20l1.2-3.9A8.38 8.38 0 0 1 3.5 12 8.38 8.38 0 0 1 12 3.5a8.38 8.38 0 0 1 9 8z"/></svg>
+        </div>
+        <h3>Your Instagram and WhatsApp messages are piling up.</h3>
+        <p>Leads sit unread for hours or days on your socials, going cold before anyone gets the chance to reply.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. SOLUTION ================= -->
+<section class="solution" id="solution">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The Solution</span>
+      <h2>One AI team, answering every call and message.</h2>
+      <p>SB Agentics replaces the gaps in your front desk with an AI receptionist and chat agent that never clocks out.</p>
+    </div>
+
+    <div class="solution-grid">
+      <div class="benefit-list reveal">
+        <div class="benefit">
+          <span class="benefit-check">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d9ac5c" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <h3>Always on</h3>
+            <p>Every call, DM, and WhatsApp message answered instantly, 24 hours a day, 365 days a year.</p>
+          </div>
+        </div>
+        <div class="benefit">
+          <span class="benefit-check">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d9ac5c" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <h3>Faster than any human</h3>
+            <p>Leads get an instant response, not a callback tomorrow — so they book with you before they call anyone else.</p>
+          </div>
+        </div>
+        <div class="benefit">
+          <span class="benefit-check">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d9ac5c" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <h3>A fraction of the cost</h3>
+            <p>No salary, no benefits, no hiring, training, or turnover — just a flat, predictable cost.</p>
+          </div>
+        </div>
+        <div class="benefit">
+          <span class="benefit-check">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d9ac5c" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <h3>Wired straight into your CRM</h3>
+            <p>Every conversation and booking syncs automatically — no manual entry, no follow-ups falling through the cracks.</p>
+          </div>
+        </div>
+        <div class="benefit">
+          <span class="benefit-check">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d9ac5c" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <h3>Built for quality, not cut-rate automation</h3>
+            <p>Trained on your business, so conversations sound right and book real appointments — not scripted dead ends.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-card reveal" id="book">
+        <h4>Book your free 15-minute setup call</h4>
+        <p>Pick a time and we'll show you exactly how it would work for your business.</p>
+        <div id="calendly-embed">
+          <!-- Calendly inline widget begin -->
+          <div class="calendly-inline-widget" data-url="https://calendly.com/sbagentics?hide_landing_page_details=1&primary_color=112441" style="min-width:320px;height:700px;width:100%;"></div>
+          <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+          <!-- Calendly inline widget end -->
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-banner reveal">
+      <h3>Stop losing leads to a missed call.</h3>
+      <a href="#book" class="btn btn-primary">Book a Free Call</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap footer-row">
+    <span>© 2026 SB Agentics. All calls answered.</span>
+    <span>Online · Global</span>
+  </div>
+</footer>
+
+<!-- Chat toggle button -->
+<button id="chat-toggle" style="
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #4F46E5;
+  color: white;
+  cursor: pointer;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+">
+  💬
+</button>
+<!-- Hidden chat container -->
+<div id="chat-container" style="
+  display: none;
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  z-index: 9998;
+  width: 400px;
+  height: 600px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  background: white;
+">
+  <openai-chatkit style="width: 100%; height: 100%;"></openai-chatkit>
+</div>
+
+<script>
+  // Ticker content — duplicated once for a seamless loop
+  (function(){
+    var events = [
+      "📞 Incoming call — <b>answered in 1s</b>",
+      "💬 WhatsApp lead — <b>response sent in 2s</b>",
+      "📸 Instagram DM — <b>appointment booked</b>",
+      "📞 After-hours call — <b>answered in 1s</b>",
+      "💬 New lead captured — <b>synced to CRM</b>",
+      "📞 Missed-call risk — <b>caught instantly</b>"
+    ];
+    var track = document.getElementById('tickerTrack');
+    var html = events.concat(events).map(function(e){
+      return '<span>' + e + '</span>';
+    }).join('');
+    track.innerHTML = html;
+  })();
+
+  // Scroll reveal
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function(el){ el.classList.add('is-visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    els.forEach(function(el){ io.observe(el); });
+
+    // Safety net: force everything visible after 2s in case the observer
+    // never fires (e.g. unusual embed context), so nothing stays hidden.
+    setTimeout(function(){
+      els.forEach(function(el){ el.classList.add('is-visible'); });
+    }, 2000);
+  })();
+</script>
+
+<script>
+  const DOMAIN_KEY = 'domain_pk_6a6a3ef95dd48196a8ee983ff9108106028c7926463dde0e';
+  const API_URL = 'https://openai.secondbrainos.com/chatkit';
+  const customFetch = (url, options = {}) => {
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'X-Domain-Key': DOMAIN_KEY,
+      },
+    });
+  };
+  function initChatKit() {
+    const kit = document.querySelector('openai-chatkit');
+    if (kit && kit.setOptions) {
+      kit.setOptions({
+        api: {
+          url: API_URL,
+          domainKey: DOMAIN_KEY,
+          fetch: customFetch,
+        },
+        theme: {
+          colorScheme: 'light',
+          color: {
+            accent: { primary: '#4F46E5', level: 2 },
+          },
+          radius: 'round',
+          density: 'spacious',
+        },
+      });
+    }
+  }
+  const chatToggle = document.getElementById('chat-toggle');
+  const chatContainer = document.getElementById('chat-container');
+  chatToggle.addEventListener('click', () => {
+    const isHidden = chatContainer.style.display === 'none';
+    chatContainer.style.display = isHidden ? 'block' : 'none';
+  });
+  window.addEventListener('load', () => {
+    initChatKit();
+  });
+</script>
+
+</body>
+</html>
